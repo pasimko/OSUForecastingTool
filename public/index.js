@@ -24,7 +24,7 @@ let majors = {
         "robot intelligence",
         "simulation and game programming",
         "systems",
-        "web and mobile application development ",
+        "web and mobile application development",
     ],
     "electrical and computer engineering": null
 }
@@ -32,6 +32,12 @@ let majors = {
 const optionSelectDiv = document.getElementById("optionSelect");
 const majorSelect = document.getElementById("majorSelect");
 const goButton = document.getElementById("goButton");
+
+// Ensure form is reset on refresh
+majorSelect.selectedIndex = 0;
+goButton.disabled = true;
+let selectedMajor = majorSelect.value;
+let selectedOption = null
 
 for (let major in majors) {
     const option = document.createElement('option');
@@ -42,7 +48,7 @@ for (let major in majors) {
 
 majorSelect.addEventListener('change', () => {
     goButton.disabled = true;
-    const selectedMajor = majorSelect.value;
+    selectedMajor = majorSelect.value;
     while (optionSelectDiv.firstChild) {
         optionSelectDiv.removeChild(optionSelectDiv.firstChild);
     }
@@ -62,7 +68,36 @@ majorSelect.addEventListener('change', () => {
         });
 
         optionSelectDiv.appendChild(optionForm);
+        optionForm.addEventListener('change', () => { 
+            selectedOption = optionForm.value
+            goButton.disabled = false
+        })
     }
     else
         goButton.disabled = false;
 });
+
+async function requestData(major) {
+    try {
+        const response = await fetch('/getData', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(major)
+        });
+
+        if (!response.ok) {
+            throw new Error('Request failed.');
+        }
+
+        const result = await response.json();
+        console.log('Received data:', result);
+    } catch (error) {
+        console.error('Error:', error.message);
+    }
+}
+
+goButton.addEventListener('click', () => {
+    requestData({selectedMajor, selectedOption});
+})
